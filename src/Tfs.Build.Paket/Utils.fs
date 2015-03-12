@@ -10,7 +10,13 @@ module Utils =
         }
     let ensureDir dir =
         if System.IO.Directory.Exists(dir) |> not 
-        then System.IO.Directory.CreateDirectory(dir) |> ignore        
+        then System.IO.Directory.CreateDirectory(dir) |> ignore
+        
+    let isNullOrEmpty (s :string) =
+        s = null || s = ""
+    
+    let getFilesRec source pattern =
+        System.IO.Directory.GetFiles(source, pattern, System.IO.SearchOption.AllDirectories)        
      
     let runexe exeName errFunc outputFunc =
         let mutable processInfo = new System.Diagnostics.ProcessStartInfo(exeName)
