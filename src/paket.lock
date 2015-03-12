@@ -3,8 +3,6 @@ NUGET
   specs:
     DotNetZip (1.9.3)
     FSharp.Core (3.1.2.1)
-    FSharp.Data (2.1.1)
-      Zlib.Portable (>= 1.10.0) - framework: portable-net40+sl50+wp80+win80
     Microsoft.Bcl (1.1.10)
       Microsoft.Bcl.Build (>= 1.0.14)
     Microsoft.Bcl.Build (1.0.21)
@@ -18,4 +16,3 @@ NUGET
       DotNetZip
       FSharp.Core
       Newtonsoft.Json
-    Zlib.Portable (1.10.0)

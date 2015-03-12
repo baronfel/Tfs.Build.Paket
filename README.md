@@ -10,3 +10,6 @@ A set of helpful TFS Build tasks around getting and using [Paket](http://fsproje
         * And one of either
             * PathToPaketExe : the network folder where Paket.exe lives
             * GitHubApiToken : your [token](https://github.com/blog/1509-personal-api-tokens) for querying and downloading via the GitHub API.
+
+# Build and Deploy notes
+This is using beta bits of F#, specifically for Seq.sortByDescending, so you'll need the latest VS 2015 CTP 6/F# compiler to use this.  The package will be updated to reference the beta version of F# on nuget in just a bit, so that deployments will be entirely self-contained.
