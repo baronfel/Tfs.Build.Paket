@@ -1,9 +1,10 @@
 ﻿namespace Tfs.Build.Paket
 
-open Tfs.Build.Paket.GitHub
-open Tfs.Build.Paket.Utils
-
 module Tasks =
+    open Tfs.Build.Paket.GitHub
+    open Tfs.Build.Paket.Utils
+    open Paket
+
     let downloadLatestFromGitHub token destinationFileName logMessage logError =
         try
             System.IO.Path.GetDirectoryName(destinationFileName)
@@ -60,3 +61,27 @@ module Tasks =
 
         member val GitHubApiToken = "" with get,set
         member val PathToPaketExe = "" with get,set
+
+    type RestoreTask() =
+        inherit Microsoft.Build.Utilities.Task()
+
+        override x.Execute () = 
+            let depsFile = System.IO.Directory.GetFiles(x.SourceFolder, "paket.dependencies", System.IO.SearchOption.AllDirectories) |> Seq.firstOrDefault
+            let referencesFiles = System.IO.Directory.GetFiles(x.SourceFolder, "paket.references", System.IO.SearchOption.AllDirectories) |> List.ofArray
+            try 
+                match depsFile, referencesFiles with
+                | None, _ -> 
+                    x.Log.LogError("no paket.dependencies file found. aborting restore.")
+                    false
+                | Some deps, refs ->
+                    x.Log.LogMessage("found paket.dependencies and references files. restoring now")
+                    Paket.RestoreProcess.Restore(deps, true, refs)
+                    x.Log.LogMessage("restore complete")
+                    true
+            with
+            | ex -> 
+                x.Log.LogErrorFromException(ex, true)
+                false
+
+        [<Microsoft.Build.Framework.Required>]
+        member val SourceFolder = "" with get,set
