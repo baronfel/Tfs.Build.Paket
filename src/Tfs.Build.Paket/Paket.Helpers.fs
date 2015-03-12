@@ -4,6 +4,13 @@ module PaketHelpers =
     open Tfs.Build.Paket.Utils
     open Tfs.Build.Paket.GitHub
 
+    let getDepsFile sourceDir =
+        getFilesRec sourceDir "paket.dependencies" |> Seq.tryHead
+
+    let getRefsFiles sourceDir =
+        getFilesRec sourceDir "paket.references" |> List.ofArray
+        
+
     let downloadLatestFromGitHub token destinationFileName logMessage logError =
         try
             System.IO.Path.GetDirectoryName(destinationFileName)
@@ -31,8 +38,8 @@ module PaketHelpers =
             logErrFn "source directory not present"
             false
         else 
-            let depsFile = getFilesRec sourceDir "paket.dependencies" |> Seq.firstOrDefault
-            let referencesFiles = getFilesRec sourceDir "paket.references" |> List.ofArray
+            let depsFile = sourceDir |> getDepsFile
+            let referencesFiles = sourceDir |> getRefsFiles
             try 
                 match depsFile, referencesFiles with
                 | None, _ -> 
@@ -47,6 +54,30 @@ module PaketHelpers =
             | ex -> 
                 ex.ToString() |> logErrFn
                 false
+
+    let getLockFileDeps sourceDir =
+        sourceDir 
+        |> getDepsFile
+        |> Option.map Paket.DependenciesFile.FindLockfile
+        |> Option.map (fun fi -> Paket.LockFile.LoadFrom fi.FullName)
+
+    let nugetPackages sourceDir =
+        match getLockFileDeps sourceDir with
+        | None -> List.empty
+        | Some lock -> lock.ResolvedPackages |> Map.toList
+
+    let hasPrereleases sourceDir logErrFn logMsgFn =
+        match nugetPackages sourceDir |> List.filter (fun (n,p) -> p.Version.PreRelease.IsSome) with
+        | [] -> 
+            logMsgFn "No prereleases found"
+            false
+        | prereleases -> 
+            prereleases
+            |> List.map (fun (n,p) -> sprintf "%A - %A" n p.Version)
+            |> String.concat (sprintf "%s" System.Environment.NewLine)
+            |> sprintf "found packages that were prereleases:%s%s" System.Environment.NewLine
+            |> logErrFn
+            true
 
     let runBootstrapper file msg err =
         let logErr args = err(sprintf "%A" args)
