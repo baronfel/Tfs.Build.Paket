@@ -1,5 +1,5 @@
 ﻿type project
 id Tfs.Build.Paket
-version 0.1.0
+version 0.2.0
 authors Chet Husk
 description A set of TFS build tasks around getting and using paket
