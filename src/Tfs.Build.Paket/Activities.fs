@@ -4,6 +4,7 @@ type In<'a> = System.Activities.InArgument<'a>
 type Out<'a> = System.Activities.OutArgument<'a>
 
 module Activities =
+    open System.Collections.Generic
     open Tfs.Build.Paket.GitHub
     open Tfs.Build.Paket.Utils
     open Tfs.Build.Paket.PaketHelpers
@@ -43,3 +44,19 @@ module Activities =
             let sourceFolder = context.GetValue x.SourceFolder
             hasPrereleases sourceFolder (logErr context) (logMsg context)
             |> setResult context x.Status (int PaketCallStatus.Successful) (int PaketCallStatus.Failed)
+    
+    type AssertNoUnapprovedFeedsActivity() =
+        inherit PaketActivityBase()
+
+        member val AllowedFeeds : In<ResizeArray<string>> = null with get,set
+        member val ShouldError : In<bool> = null with get,set
+
+        override x.Execute context = 
+            let sourceFolder = context.GetValue x.SourceFolder
+            let feeds = context.GetValue x.AllowedFeeds |> List.ofSeq
+            let failOnInvalids = context.GetValue x.ShouldError
+
+            hasInvalidSources sourceFolder feeds failOnInvalids (logErr context) (logMsg context)
+            |> not
+            |> setResult context x.Status (int PaketCallStatus.Successful) (int PaketCallStatus.Failed)
+

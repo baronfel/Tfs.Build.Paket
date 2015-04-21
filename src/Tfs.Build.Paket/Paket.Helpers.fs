@@ -79,6 +79,30 @@ module PaketHelpers =
             |> logErrFn
             true
 
+    let sources sourceDir =
+        nugetPackages sourceDir
+        |> List.map snd
+        |> List.map (fun pkg -> pkg.Source)
+        |> List.choose (fun src -> match src with | Paket.PackageSources.Nuget s -> Some s | _ -> None)
+        |> List.map (fun nusrc -> nusrc.Url)
+        |> List.distinct
+
+    let hasInvalidSources sourceDir (allowedSources : string list) failOnMatch logErrFn logMsgFn =
+        let lockFileSources = sources sourceDir |> List.map (fun s -> s.ToLowerInvariant())
+        let invalids = 
+            lockFileSources |> Set.ofList
+            |> Set.union (allowedSources |> List.map (fun s -> s.ToLowerInvariant()) |> Set.ofList)
+        match invalids.IsEmpty with
+        | true | false when not failOnMatch ->
+            logMsgFn "no invalid sources found"
+            false
+        | _ -> 
+            logErrFn "found invalid package sources in the solution." 
+            invalids
+            |> Set.map (fun s -> sprintf "invalid package source: %s" s)
+            |> Set.iter logErrFn
+            true
+
     let runBootstrapper file msg err =
         let logErr args = err(sprintf "%A" args)
         let logMsg args = msg(sprintf "%A" args)

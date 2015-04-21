@@ -11,6 +11,12 @@ A set of helpful TFS Build Activities around getting and using [Paket](http://fs
     * Asserts that for a given paket.dependencies file there are no packages that are prerelease
     * takes a required parameter:
         * SourceFolder : the folder where your source code is
+* `Tfs.Paket.Activities.AssertNoUnapprovedFeedsActivity`
+    * Asserts that for a given paket.dependencies file there are no packages that come from an unapproved feed
+    * takes three required parameters:
+        * SourceFolder: the folder where your source code is
+        * AllowedFeeds: a list of allowed package feed urls
+        * ShouldError: should the presence of any of these feeds break the build
 
 # Build and Deploy notes
 This is using beta bits of F#, specifically for Seq.sortByDescending, so you'll need the latest VS 2015 CTP 6/F# compiler to use this.  The package will be updated to reference the beta version of F# on nuget in just a bit, so that deployments will be entirely self-contained.
