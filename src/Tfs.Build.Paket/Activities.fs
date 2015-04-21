@@ -15,17 +15,17 @@ module Activities =
 
     let logMsg (context : System.Activities.CodeActivityContext) msg = context.TrackBuildMessage(msg, Microsoft.TeamFoundation.Build.Client.BuildMessageImportance.Normal)
     let logErr (context : System.Activities.CodeActivityContext) msg = context.TrackBuildError(msg)
-    let setResult (context : System.Activities.CodeActivityContext) (outProp : Out<PaketCallStatus>) input =
+    let setResult (context : System.Activities.CodeActivityContext) (outProp : Out<'a>) trueVal falseVal input =
          match input with
-         | true -> context.SetValue(outProp, PaketCallStatus.Successful)
-         | false -> context.SetValue(outProp, PaketCallStatus.Failed) 
+         | true -> context.SetValue(outProp, trueVal)
+         | false -> context.SetValue(outProp, falseVal) 
 
     [<AbstractClass>]
     type PaketActivityBase() =
         inherit System.Activities.CodeActivity()
 
         member val SourceFolder : In<string> = null with get,set
-        member val Status : Out<PaketCallStatus> = null with get,set
+        member val Status : Out<int> = null with get,set
 
     type RestoreActivity() =
         inherit PaketActivityBase()
@@ -34,7 +34,7 @@ module Activities =
             let sourceFolder = context.GetValue x.SourceFolder 
 
             restoreFromSourceDir sourceFolder (logErr context) (logMsg context)
-            |> setResult context x.Status
+            |> setResult context x.Status (int PaketCallStatus.Successful) (int PaketCallStatus.Failed)
 
     type AssertNoPrereleaseActivity() =
         inherit PaketActivityBase()
@@ -42,4 +42,4 @@ module Activities =
         override x.Execute context =
             let sourceFolder = context.GetValue x.SourceFolder
             hasPrereleases sourceFolder (logErr context) (logMsg context)
-            |> setResult context x.Status
+            |> setResult context x.Status (int PaketCallStatus.Successful) (int PaketCallStatus.Failed)
