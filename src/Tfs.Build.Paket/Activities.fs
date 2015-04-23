@@ -21,15 +21,11 @@ module Activities =
          | true -> context.SetValue(outProp, trueVal)
          | false -> context.SetValue(outProp, falseVal) 
 
-    [<AbstractClass>]
-    type PaketActivityBase() =
+    type RestoreActivity() =
         inherit System.Activities.CodeActivity()
 
         member val SourceFolder : In<string> = null with get,set
         member val Status : Out<int> = null with get,set
-
-    type RestoreActivity() =
-        inherit PaketActivityBase()
 
         override x.Execute context =
             let sourceFolder = context.GetValue x.SourceFolder 
@@ -38,7 +34,10 @@ module Activities =
             |> setResult context x.Status (int PaketCallStatus.Successful) (int PaketCallStatus.Failed)
 
     type AssertNoPrereleaseActivity() =
-        inherit PaketActivityBase()
+        inherit System.Activities.CodeActivity()
+
+        member val SourceFolder : In<string> = null with get,set
+        member val Status : Out<int> = null with get,set
 
         override x.Execute context =
             let sourceFolder = context.GetValue x.SourceFolder
@@ -46,7 +45,10 @@ module Activities =
             |> setResult context x.Status (int PaketCallStatus.Successful) (int PaketCallStatus.Failed)
     
     type AssertNoUnapprovedFeedsActivity() =
-        inherit PaketActivityBase()
+        inherit System.Activities.CodeActivity()
+
+        member val SourceFolder : In<string> = null with get,set
+        member val Status : Out<int> = null with get,set
 
         member val AllowedFeeds : In<ResizeArray<string>> = null with get,set
         member val ShouldError : In<bool> = null with get,set
