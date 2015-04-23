@@ -2,17 +2,12 @@
 
 open Tfs.Build.Paket.PaketHelpers
 open Microsoft.TeamFoundation.Build.Client
-open System.Workflow.Activities
 open System.Activities
 
 type In<'a> = System.Activities.InArgument<'a>
 type Out<'a> = System.Activities.OutArgument<'a>
 
 module Activities =
-    open System.Collections.Generic
-    open Tfs.Build.Paket.GitHub
-    open Tfs.Build.Paket.Utils
-    open Tfs.Build.Paket.PaketHelpers
     open Microsoft.TeamFoundation.Build.Workflow.Activities
 
     let logMsg (context : System.Activities.CodeActivityContext) msg = context.TrackBuildMessage(msg, Microsoft.TeamFoundation.Build.Client.BuildMessageImportance.Normal)

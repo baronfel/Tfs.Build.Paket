@@ -8,7 +8,7 @@ module PaketHelpers =
         match getFilesRec sourceDir "paket.dependencies" with 
         | [] -> None
         | x::[] -> Some x
-        | x::xs -> None
+        | _ -> None
 
     let getRefsFiles sourceDir =
         getFilesRec sourceDir "paket.references"
@@ -70,7 +70,7 @@ module PaketHelpers =
         | Some lock -> lock.ResolvedPackages |> Map.toList
 
     let hasPrereleases sourceDir logErrFn logMsgFn =
-        match nugetPackages sourceDir |> List.filter (fun (n,p) -> p.Version.PreRelease.IsSome) with
+        match nugetPackages sourceDir |> List.filter (fun (_,p) -> p.Version.PreRelease.IsSome) with
         | [] -> 
             logMsgFn "No prereleases found"
             false

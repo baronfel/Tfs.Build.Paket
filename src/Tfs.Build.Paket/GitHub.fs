@@ -30,7 +30,7 @@ module GitHub =
     
     let private asset releaseid name (client : GitHubClient) =
         async {
-            let! assets = client.Release.GetAssets("fsprojects", "paket", releaseid) |> Async.AwaitTask
+            let! assets = client.Release.GetAllAssets("fsprojects", "paket", releaseid) |> Async.AwaitTask
             return assets
             |> Seq.find (fun a -> a.Name.Equals(name, System.StringComparison.OrdinalIgnoreCase))
         }
