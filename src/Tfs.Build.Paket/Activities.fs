@@ -1,7 +1,9 @@
 ﻿namespace Tfs.Build.Paket
 
 open Tfs.Build.Paket.PaketHelpers
-open Microsoft.TeamFoundation.Build.Client;
+open Microsoft.TeamFoundation.Build.Client
+open System.Workflow.Activities
+open System.Activities
 
 type In<'a> = System.Activities.InArgument<'a>
 type Out<'a> = System.Activities.OutArgument<'a>
@@ -24,10 +26,11 @@ type PaketCallStatus =
         | Successful = 0
         | Failed = 1
 
-[<BuildActivityAttribute(HostEnvironmentOption.Agent)>]
+[<BuildActivity(HostEnvironmentOption.Agent)>]
 type RestoreActivity() =
-    inherit System.Activities.CodeActivity()
+    inherit CodeActivity()
 
+    [<RequiredArgument>]
     member val SourceFolder : In<string> = null with get,set
     member val Status : Out<int> = null with get,set
 
@@ -37,10 +40,11 @@ type RestoreActivity() =
         restoreFromSourceDir sourceFolder (Activities.logErr context) (Activities.logMsg context)
         |> Activities.setResult context x.Status (int PaketCallStatus.Successful) (int PaketCallStatus.Failed)
 
-[<BuildActivityAttribute(HostEnvironmentOption.Agent)>]
+[<BuildActivity(HostEnvironmentOption.Agent)>]
 type AssertNoPrereleaseActivity() =
-    inherit System.Activities.CodeActivity()
+    inherit CodeActivity()
 
+    [<RequiredArgument>]
     member val SourceFolder : In<string> = null with get,set
     member val Status : Out<int> = null with get,set
 
@@ -49,15 +53,18 @@ type AssertNoPrereleaseActivity() =
         hasPrereleases sourceFolder (Activities.logErr context) (Activities.logMsg context)
         |> Activities.setResult context x.Status (int PaketCallStatus.Successful) (int PaketCallStatus.Failed)
     
-[<BuildActivityAttribute(HostEnvironmentOption.Agent)>]
+[<BuildActivity(HostEnvironmentOption.Agent)>]
 type AssertNoUnapprovedFeedsActivity() =
-    inherit System.Activities.CodeActivity()
+    inherit CodeActivity()
 
+    [<RequiredArgument>]
     member val SourceFolder : In<string> = null with get,set
-    member val Status : Out<int> = null with get,set
-
+    [<RequiredArgument>]
     member val AllowedFeeds : In<ResizeArray<string>> = null with get,set
+    [<RequiredArgument>]
     member val ShouldError : In<bool> = null with get,set
+
+    member val Status : Out<int> = null with get,set
 
     override x.Execute context = 
         let sourceFolder = context.GetValue x.SourceFolder
