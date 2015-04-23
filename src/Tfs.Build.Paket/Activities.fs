@@ -1,6 +1,7 @@
 ﻿namespace Tfs.Build.Paket
 
 open Tfs.Build.Paket.PaketHelpers
+open Microsoft.TeamFoundation.Build.Client;
 
 type In<'a> = System.Activities.InArgument<'a>
 type Out<'a> = System.Activities.OutArgument<'a>
@@ -23,6 +24,7 @@ type PaketCallStatus =
         | Successful = 0
         | Failed = 1
 
+[<BuildActivityAttribute(HostEnvironmentOption.Agent)>]
 type RestoreActivity() =
     inherit System.Activities.CodeActivity()
 
@@ -35,6 +37,7 @@ type RestoreActivity() =
         restoreFromSourceDir sourceFolder (Activities.logErr context) (Activities.logMsg context)
         |> Activities.setResult context x.Status (int PaketCallStatus.Successful) (int PaketCallStatus.Failed)
 
+[<BuildActivityAttribute(HostEnvironmentOption.Agent)>]
 type AssertNoPrereleaseActivity() =
     inherit System.Activities.CodeActivity()
 
@@ -46,6 +49,7 @@ type AssertNoPrereleaseActivity() =
         hasPrereleases sourceFolder (Activities.logErr context) (Activities.logMsg context)
         |> Activities.setResult context x.Status (int PaketCallStatus.Successful) (int PaketCallStatus.Failed)
     
+[<BuildActivityAttribute(HostEnvironmentOption.Agent)>]
 type AssertNoUnapprovedFeedsActivity() =
     inherit System.Activities.CodeActivity()
 
