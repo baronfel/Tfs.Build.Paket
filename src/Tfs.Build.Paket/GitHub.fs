@@ -21,9 +21,11 @@ module GitHub =
         async {
             let! releases = releases client
             return releases
-            |> Seq.filter (fun r -> stable && isStable r)
-            |> Seq.sortByDescending (fun r -> r.CreatedAt)
-            |> Seq.head
+            |> Seq.toList
+            |> List.filter (fun r -> stable && isStable r)
+            |> List.sortBy (fun r -> r.CreatedAt)
+            |> List.rev
+            |> List.head
         }
     
     let private asset releaseid name (client : GitHubClient) =

@@ -5,10 +5,13 @@ module PaketHelpers =
     open Tfs.Build.Paket.GitHub
 
     let getDepsFile sourceDir =
-        getFilesRec sourceDir "paket.dependencies" |> Seq.tryHead
+        match getFilesRec sourceDir "paket.dependencies" with 
+        | [] -> None
+        | x::[] -> Some x
+        | x::xs -> None
 
     let getRefsFiles sourceDir =
-        getFilesRec sourceDir "paket.references" |> List.ofArray
+        getFilesRec sourceDir "paket.references"
         
 
     let downloadLatestFromGitHub token destinationFileName logMessage logError =
@@ -85,7 +88,9 @@ module PaketHelpers =
         |> List.map (fun pkg -> pkg.Source)
         |> List.choose (fun src -> match src with | Paket.PackageSources.Nuget s -> Some s | _ -> None)
         |> List.map (fun nusrc -> nusrc.Url)
-        |> List.distinct
+        |> Seq.ofList 
+        |> Seq.distinct
+        |> List.ofSeq
 
     let hasInvalidSources sourceDir (allowedSources : string list) failOnMatch logErrFn logMsgFn =
         let lockFileSources = sources sourceDir |> List.map (fun s -> s.ToLowerInvariant())

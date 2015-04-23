@@ -2,3 +2,4 @@ source https://nuget.org/api/v2
 
 nuget OctoKit
 nuget Paket.Core
+nuget FSharp.Core

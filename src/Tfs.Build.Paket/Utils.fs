@@ -4,9 +4,8 @@ module Utils =
     let downloadAndSave (uri : string) dest =
         async {
             use client = new System.Net.Http.HttpClient()
-            let! downloadStream = client.GetStreamAsync(uri) |> Async.AwaitTask
-            use filestream = new System.IO.FileStream(dest, System.IO.FileMode.Create, System.IO.FileAccess.Write, System.IO.FileShare.None)
-            return! downloadStream.CopyToAsync(filestream) |> Async.AwaitTask
+            let! downloadString = client.GetStringAsync(uri) |> Async.AwaitTask
+            return System.IO.File.WriteAllText(dest, downloadString)
         }
     let ensureDir dir =
         if System.IO.Directory.Exists(dir) |> not 
@@ -16,7 +15,7 @@ module Utils =
         s = null || s = ""
     
     let getFilesRec source pattern =
-        System.IO.Directory.GetFiles(source, pattern, System.IO.SearchOption.AllDirectories)        
+        System.IO.Directory.GetFiles(source, pattern, System.IO.SearchOption.AllDirectories) |> List.ofArray        
      
     let runexe exeName errFunc outputFunc =
         let mutable processInfo = new System.Diagnostics.ProcessStartInfo(exeName)
