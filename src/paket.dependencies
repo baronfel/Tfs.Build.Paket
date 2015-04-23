@@ -1,5 +1,5 @@
 source https://nuget.org/api/v2
 
+nuget FSharp.Core 3.0.2
 nuget OctoKit
 nuget Paket.Core
-nuget FSharp.Core
