@@ -71,8 +71,9 @@ module PaketHelpers =
     let hasInvalidSources sourceDir (allowedSources : string list) failOnMatch logErrFn logMsgFn =
         let lockFileSources = sources sourceDir |> List.map (fun s -> s.ToLowerInvariant())
         let invalids = 
-            lockFileSources |> Set.ofList
-            |> Set.union (allowedSources |> List.map (fun s -> s.ToLowerInvariant()) |> Set.ofList)
+            lockFileSources 
+            |> Set.ofList
+            |> Set.intersect (allowedSources |> List.map (fun s -> s.ToLowerInvariant()) |> Set.ofList)
         match invalids.IsEmpty with
         | true | false when not failOnMatch ->
             logMsgFn "no invalid sources found"
