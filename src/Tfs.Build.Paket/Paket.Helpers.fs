@@ -2,7 +2,6 @@
 
 module PaketHelpers =
     open Tfs.Build.Paket.Utils
-    open Tfs.Build.Paket.GitHub
 
     let getDepsFile sourceDir =
         match getFilesRec sourceDir "paket.dependencies" with 
@@ -13,29 +12,6 @@ module PaketHelpers =
     let getRefsFiles sourceDir =
         getFilesRec sourceDir "paket.references"
         
-
-    let downloadLatestFromGitHub token destinationFileName logMessage logError =
-        try
-            System.IO.Path.GetDirectoryName(destinationFileName)
-            |> ensureDir 
-
-            let client = createClient token
-            
-            logMessage("fetching paket bootstrapper url")
-            let latestBootstrapperUrl = 
-                client |> 
-                getBootstrapperUrl true  
-                |> Async.RunSynchronously
-            logMessage(sprintf "paket found at %s" latestBootstrapperUrl)
-            
-            downloadAndSave latestBootstrapperUrl destinationFileName 
-            |> Async.RunSynchronously
-
-            logMessage("installing paket.exe")
-        with 
-        | ex -> 
-            logError(ex.ToString())
-
     let restoreFromSourceDir sourceDir logErrFn logMsgFn =
         if sourceDir |> (System.IO.Directory.Exists >> not) then 
             logErrFn "source directory not present"

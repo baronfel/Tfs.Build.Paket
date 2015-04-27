@@ -1,12 +1,6 @@
 ﻿namespace Tfs.Build.Paket
 
 module Utils =
-    let downloadAndSave (uri : string) dest =
-        async {
-            use client = new System.Net.Http.HttpClient()
-            let! downloadString = client.GetStringAsync(uri) |> Async.AwaitTask
-            return System.IO.File.WriteAllText(dest, downloadString)
-        }
     let ensureDir dir =
         if System.IO.Directory.Exists(dir) |> not 
         then System.IO.Directory.CreateDirectory(dir) |> ignore

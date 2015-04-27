@@ -10,8 +10,9 @@ type Out<'a> = System.Activities.OutArgument<'a>
 module Activities =
     open Microsoft.TeamFoundation.Build.Workflow.Activities
 
-    let logMsg (context : System.Activities.CodeActivityContext) msg = context.TrackBuildMessage(msg, Microsoft.TeamFoundation.Build.Client.BuildMessageImportance.Normal)
+    let logMsg (context : System.Activities.CodeActivityContext) msg = context.TrackBuildMessage(msg, BuildMessageImportance.High)
     let logErr (context : System.Activities.CodeActivityContext) msg = context.TrackBuildError(msg)
+
     let setResult (context : System.Activities.CodeActivityContext) (outProp : Out<'a>) trueVal falseVal input =
          match input with
          | true -> context.SetValue(outProp, trueVal)
@@ -21,13 +22,17 @@ type PaketCallStatus =
         | Successful = 0
         | Failed = 1
 
-[<BuildActivity(HostEnvironmentOption.Agent)>]
-type RestoreActivity() =
+[<AbstractClassAttribute>]
+type BaseActivity() =
     inherit CodeActivity()
-
+    
     [<RequiredArgument>]
     member val SourceFolder : In<string> = null with get,set
     member val Status : Out<int> = null with get,set
+
+[<BuildActivity(HostEnvironmentOption.Agent)>]
+type RestoreActivity() =
+    inherit BaseActivity()
 
     override x.Execute context =
         let sourceFolder = context.GetValue x.SourceFolder 
@@ -37,29 +42,23 @@ type RestoreActivity() =
 
 [<BuildActivity(HostEnvironmentOption.Agent)>]
 type AssertNoPrereleaseActivity() =
-    inherit CodeActivity()
-
-    [<RequiredArgument>]
-    member val SourceFolder : In<string> = null with get,set
-    member val Status : Out<int> = null with get,set
+    inherit BaseActivity()
 
     override x.Execute context =
         let sourceFolder = context.GetValue x.SourceFolder
+
         hasPrereleases sourceFolder (Activities.logErr context) (Activities.logMsg context)
+        |> not
         |> Activities.setResult context x.Status (int PaketCallStatus.Successful) (int PaketCallStatus.Failed)
     
 [<BuildActivity(HostEnvironmentOption.Agent)>]
 type AssertNoUnapprovedFeedsActivity() =
-    inherit CodeActivity()
+    inherit BaseActivity()
 
-    [<RequiredArgument>]
-    member val SourceFolder : In<string> = null with get,set
     [<RequiredArgument>]
     member val AllowedFeeds : In<ResizeArray<string>> = null with get,set
     [<RequiredArgument>]
     member val ShouldError : In<bool> = null with get,set
-
-    member val Status : Out<int> = null with get,set
 
     override x.Execute context = 
         let sourceFolder = context.GetValue x.SourceFolder
