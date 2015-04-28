@@ -68,21 +68,35 @@ module PaketHelpers =
         |> Seq.distinct
         |> List.ofSeq
 
-    let hasInvalidSources sourceDir (allowedSources : string list) failOnMatch logErrFn logMsgFn =
-        let lockFileSources = sources sourceDir |> List.map (fun s -> s.ToLowerInvariant())
-        let invalids = 
-            lockFileSources 
-            |> Set.ofList
-            |> Set.intersect (allowedSources |> List.map (fun s -> s.ToLowerInvariant()) |> Set.ofList)
-        match invalids.IsEmpty with
-        | true | false when not failOnMatch ->
+    let findOutliers (allowed : string list) (provided : string list) =
+        provided |> List.filter (fun prov -> allowed |> List.exists (fun a -> prov.StartsWith(a)) |> not )
+
+    let hasInvalidSources sourceDir (allowedSources : string list) (foundSources) failOnMatch logErrFn logMsgFn =
+        let distinctAllowed = allowedSources |> Seq.ofList |> Seq.distinct |> List.ofSeq
+        let lockFileSources = sources sourceDir |> Seq.ofList |> Seq.map (fun s -> s.ToLowerInvariant()) |> Seq.distinct |> List.ofSeq
+        
+        let anyBadSources = findOutliers distinctAllowed lockFileSources
+
+        let printBadSources srcs =
+            srcs
+            |> List.map (fun s -> sprintf "invalid package source: %s" s)
+            |> String.concat System.Environment.NewLine
+
+        match anyBadSources with
+        | [] ->
             logMsgFn "no invalid sources found"
             false
-        | _ -> 
+        | srcs when not failOnMatch ->
+            logMsgFn "found invalid package sources in the solution." 
+            srcs
+            |> printBadSources
+            |> logMsgFn
+            false
+        | srcs -> 
             logErrFn "found invalid package sources in the solution." 
-            invalids
-            |> Set.map (fun s -> sprintf "invalid package source: %s" s)
-            |> Set.iter logErrFn
+            srcs
+            |> printBadSources
+            |> logErrFn
             true
 
     let runBootstrapper file msg err =
