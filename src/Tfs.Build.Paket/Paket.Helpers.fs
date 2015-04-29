@@ -71,7 +71,10 @@ module PaketHelpers =
     let findOutliers (allowed : string list) (provided : string list) =
         provided |> List.filter (fun prov -> allowed |> List.exists (fun a -> prov.StartsWith(a)) |> not )
 
-    let hasInvalidSources sourceDir (allowedSources : string list) (foundSources) failOnMatch logErrFn logMsgFn =
+    let hasInvalidSources sourceDir (allowedSources : string list) failOnMatch logErrFn logMsgFn =
+
+        sprintf "checking for the following sources: %A" allowedSources |> logMsgFn
+                
         let distinctAllowed = allowedSources |> Seq.ofList |> Seq.distinct |> List.ofSeq
         let lockFileSources = sources sourceDir |> Seq.ofList |> Seq.map (fun s -> s.ToLowerInvariant()) |> Seq.distinct |> List.ofSeq
         
