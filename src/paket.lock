@@ -4,6 +4,6 @@ NUGET
   specs:
     FSharp.Core (3.1.2.1)
     Newtonsoft.Json (6.0.8)
-    Paket.Core (1.2.0)
+    Paket.Core (1.39.1)
       FSharp.Core
       Newtonsoft.Json
