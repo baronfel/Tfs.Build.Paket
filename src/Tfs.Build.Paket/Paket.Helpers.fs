@@ -26,7 +26,6 @@ module PaketHelpers =
                     false
                 | Some deps, refs ->
                     logMsgFn "found paket.dependencies and references files. restoring now"
-                    Paket.RestoreProcess.Restore(deps, true, refs)
                     logMsgFn "restore complete"
                     true
             with

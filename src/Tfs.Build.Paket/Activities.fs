@@ -26,6 +26,20 @@ type PaketCallStatus =
 type BaseActivity() =
     inherit CodeActivity()
     
+    /// takes a context, a logfn, and a errfn
+    abstract member Do : CodeActivityContext -> (string -> unit) -> (string -> unit) -> unit;
+
+    override x.Execute context =
+        let logFn = context |> Activities.logMsg
+        let errFn = context |> Activities.logErr
+        use msgWriter = new System.IO.StringWriter()
+        System.Console.SetOut msgWriter |> ignore
+        use errWriter = new System.IO.StringWriter()
+        System.Console.SetError errWriter |> ignore
+        x.Do context logFn errFn
+        msgWriter.ToString() |> logFn
+        errWriter.ToString() |> errFn
+
     [<RequiredArgument>]
     member val SourceFolder : In<string> = null with get,set
     member val Status : Out<int> = null with get,set
@@ -34,20 +48,20 @@ type BaseActivity() =
 type RestoreActivity() =
     inherit BaseActivity()
 
-    override x.Execute context =
+    override x.Do context logFn errFn =
         let sourceFolder = context.GetValue x.SourceFolder 
 
-        restoreFromSourceDir sourceFolder (Activities.logErr context) (Activities.logMsg context)
+        restoreFromSourceDir sourceFolder logFn errFn
         |> Activities.setResult context x.Status (int PaketCallStatus.Successful) (int PaketCallStatus.Failed)
 
 [<BuildActivity(HostEnvironmentOption.Agent)>]
 type AssertNoPrereleaseActivity() =
     inherit BaseActivity()
 
-    override x.Execute context =
+    override x.Do context logFn errFn =
         let sourceFolder = context.GetValue x.SourceFolder
 
-        hasPrereleases sourceFolder (Activities.logErr context) (Activities.logMsg context)
+        hasPrereleases sourceFolder logFn errFn
         |> not
         |> Activities.setResult context x.Status (int PaketCallStatus.Successful) (int PaketCallStatus.Failed)
     
@@ -60,12 +74,12 @@ type AssertNoUnapprovedFeedsActivity() =
     [<RequiredArgument>]
     member val ShouldError : In<bool> = null with get,set
 
-    override x.Execute context = 
+    override x.Do context logFn errFn= 
         let sourceFolder = context.GetValue x.SourceFolder
         let feeds = context.GetValue x.AllowedFeeds |> List.ofSeq
         let failOnInvalids = context.GetValue x.ShouldError
 
-        hasInvalidSources sourceFolder feeds failOnInvalids (Activities.logErr context) (Activities.logMsg context)
+        hasInvalidSources sourceFolder feeds failOnInvalids logFn errFn
         |> not
         |> Activities.setResult context x.Status (int PaketCallStatus.Successful) (int PaketCallStatus.Failed)
 
