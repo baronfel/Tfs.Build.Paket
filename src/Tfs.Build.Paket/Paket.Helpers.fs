@@ -6,7 +6,7 @@ module PaketHelpers =
     let getDepsFile sourceDir =
         match getFilesRec sourceDir "paket.dependencies" with 
         | [] -> None
-        | x::[] -> Some x
+        | [x] -> Some x
         | _ -> None
 
     let getRefsFiles sourceDir =
@@ -24,7 +24,7 @@ module PaketHelpers =
                 | None, _ -> 
                     logErrFn "no paket.dependencies file found. aborting restore."
                     false
-                | Some deps, refs ->
+                | Some _, _->
                     logMsgFn "found paket.dependencies and references files. restoring now"
                     logMsgFn "restore complete"
                     true
@@ -41,8 +41,14 @@ module PaketHelpers =
 
     let nugetPackages sourceDir =
         match getLockFileDeps sourceDir with
-        | None -> List.empty
-        | Some lock -> lock.ResolvedPackages |> Map.toList
+        | None -> []
+        | Some lock -> 
+            let resolution =
+                lock.Groups
+                |> Map.tryFind (Paket.Domain.GroupName "Main")
+                |> Option.map (fun g -> g.Resolution |> Map.toList)
+            defaultArg resolution []
+             
 
     let hasPrereleases sourceDir logErrFn logMsgFn =
         match nugetPackages sourceDir |> List.filter (fun (_,p) -> p.Version.PreRelease.IsSome) with
@@ -59,8 +65,7 @@ module PaketHelpers =
 
     let sources sourceDir =
         nugetPackages sourceDir
-        |> List.map snd
-        |> List.map (fun pkg -> pkg.Source)
+        |> List.map (snd >> (fun pkg -> pkg.Source))
         |> List.choose (fun src -> match src with | Paket.PackageSources.Nuget s -> Some s | _ -> None)
         |> List.map (fun nusrc -> nusrc.Url)
         |> Seq.ofList 
