@@ -66,7 +66,7 @@ module PaketHelpers =
     let sources sourceDir =
         nugetPackages sourceDir
         |> List.map (snd >> (fun pkg -> pkg.Source))
-        |> List.choose (fun src -> match src with | Paket.PackageSources.Nuget s -> Some s | _ -> None)
+        |> List.choose (fun src -> match src with | Paket.PackageSources.NuGetV2 s -> Some s | _ -> None)
         |> List.map (fun nusrc -> nusrc.Url)
         |> Seq.ofList 
         |> Seq.distinct
